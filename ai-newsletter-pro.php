@@ -3,7 +3,7 @@
  * Plugin Name: AI Newsletter Pro
  * Plugin URI: https://sawahsolutions.com/ai-newsletter-pro
  * Description: A comprehensive newsletter plugin with AI-powered content curation, multiple widget layouts, and seamless email service integrations.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Mohamed Sawah
  * Author URI: https://sawahsolutions.com
  * License: GPL v2 or later
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('AI_NEWSLETTER_PRO_VERSION', '1.0.3');
+define('AI_NEWSLETTER_PRO_VERSION', '1.0.4');
 define('AI_NEWSLETTER_PRO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('AI_NEWSLETTER_PRO_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('AI_NEWSLETTER_PRO_PLUGIN_BASENAME', plugin_basename(__FILE__));
