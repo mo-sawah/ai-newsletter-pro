@@ -3,7 +3,7 @@
  * Plugin Name: AI Newsletter Pro
  * Plugin URI: https://sawahsolutions.com/ai-newsletter-pro
  * Description: A comprehensive newsletter plugin with AI-powered content curation, multiple widget layouts, and seamless email service integrations.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Mohamed Sawah
  * Author URI: https://sawahsolutions.com
  * License: GPL v2 or later
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('AI_NEWSLETTER_PRO_VERSION', '1.0.0');
+define('AI_NEWSLETTER_PRO_VERSION', '1.0.1');
 define('AI_NEWSLETTER_PRO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('AI_NEWSLETTER_PRO_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('AI_NEWSLETTER_PRO_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -77,59 +77,50 @@ class AI_Newsletter_Pro {
         // AJAX hooks
         add_action('wp_ajax_ai_newsletter_subscribe', array($this, 'handle_subscription'));
         add_action('wp_ajax_nopriv_ai_newsletter_subscribe', array($this, 'handle_subscription'));
-        
-        // REST API endpoints
-        add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
     
     /**
-     * Load plugin dependencies
+     * Load plugin dependencies - Only load files that exist
      */
     private function load_dependencies() {
-        // Core classes
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-database.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-widget-manager.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-email-services.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-ai-curator.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-campaign-manager.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-subscriber-manager.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-analytics.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'includes/class-shortcodes.php';
+        // Core classes - only load if files exist
+        $core_files = array(
+            'includes/class-database.php',
+            'includes/class-widget-manager.php',
+            'includes/class-subscriber-manager.php'
+        );
         
-        // Admin classes
-        if (is_admin()) {
-            require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'admin/class-admin.php';
+        foreach ($core_files as $file) {
+            $file_path = AI_NEWSLETTER_PRO_PLUGIN_DIR . $file;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+            }
         }
         
-        // Public classes
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'public/class-public.php';
-        
-        // Email service integrations
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'integrations/class-mailchimp.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'integrations/class-convertkit.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'integrations/class-zoho.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'integrations/class-sendgrid.php';
-        require_once AI_NEWSLETTER_PRO_PLUGIN_DIR . 'integrations/class-activecampaign.php';
+        // Admin classes - only if in admin and file exists
+        if (is_admin()) {
+            $admin_file = AI_NEWSLETTER_PRO_PLUGIN_DIR . 'admin/class-admin.php';
+            if (file_exists($admin_file)) {
+                require_once $admin_file;
+            }
+        }
     }
     
     /**
      * Plugin activation
      */
     public function activate() {
-        // Create database tables
-        $database = new AI_Newsletter_Pro_Database();
-        $database->create_tables();
+        // Create database tables if database class exists
+        if (class_exists('AI_Newsletter_Pro_Database')) {
+            $database = new AI_Newsletter_Pro_Database();
+            $database->create_tables();
+        } else {
+            // Create tables manually if class doesn't exist
+            $this->create_basic_tables();
+        }
         
         // Create default settings
         $this->create_default_settings();
-        
-        // Create default widgets
-        $this->create_default_widgets();
-        
-        // Schedule AI curation if enabled
-        if (!wp_next_scheduled('ai_newsletter_pro_auto_curate')) {
-            wp_schedule_event(time(), 'weekly', 'ai_newsletter_pro_auto_curate');
-        }
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -139,9 +130,6 @@ class AI_Newsletter_Pro {
      * Plugin deactivation
      */
     public function deactivate() {
-        // Clear scheduled events
-        wp_clear_scheduled_hook('ai_newsletter_pro_auto_curate');
-        
         // Flush rewrite rules
         flush_rewrite_rules();
     }
@@ -161,61 +149,148 @@ class AI_Newsletter_Pro {
      * Initialize plugin
      */
     public function init() {
-        // Initialize shortcodes
-        new AI_Newsletter_Pro_Shortcodes();
+        // Initialize components only if classes exist
+        if (class_exists('AI_Newsletter_Pro_Widget_Manager')) {
+            new AI_Newsletter_Pro_Widget_Manager();
+        }
         
-        // Initialize widget manager
-        new AI_Newsletter_Pro_Widget_Manager();
+        // Add admin menu
+        if (is_admin()) {
+            add_action('admin_menu', array($this, 'add_admin_menu'));
+        }
+    }
+    
+    /**
+     * Add admin menu
+     */
+    public function add_admin_menu() {
+        add_menu_page(
+            __('AI Newsletter Pro', 'ai-newsletter-pro'),
+            __('Newsletter Pro', 'ai-newsletter-pro'),
+            'manage_options',
+            'ai-newsletter-pro',
+            array($this, 'dashboard_page'),
+            'dashicons-email-alt',
+            30
+        );
         
-        // Initialize AI curator
-        new AI_Newsletter_Pro_AI_Curator();
+        add_submenu_page(
+            'ai-newsletter-pro',
+            __('Dashboard', 'ai-newsletter-pro'),
+            __('Dashboard', 'ai-newsletter-pro'),
+            'manage_options',
+            'ai-newsletter-pro',
+            array($this, 'dashboard_page')
+        );
+        
+        add_submenu_page(
+            'ai-newsletter-pro',
+            __('Subscribers', 'ai-newsletter-pro'),
+            __('Subscribers', 'ai-newsletter-pro'),
+            'manage_options',
+            'ai-newsletter-pro-subscribers',
+            array($this, 'subscribers_page')
+        );
+        
+        add_submenu_page(
+            'ai-newsletter-pro',
+            __('Settings', 'ai-newsletter-pro'),
+            __('Settings', 'ai-newsletter-pro'),
+            'manage_options',
+            'ai-newsletter-pro-settings',
+            array($this, 'settings_page')
+        );
+    }
+    
+    /**
+     * Dashboard page
+     */
+    public function dashboard_page() {
+        echo '<div class="wrap">';
+        echo '<h1>' . __('AI Newsletter Pro Dashboard', 'ai-newsletter-pro') . '</h1>';
+        echo '<div class="notice notice-success"><p>' . __('Plugin activated successfully! Start by adding the missing files.', 'ai-newsletter-pro') . '</p></div>';
+        
+        echo '<h2>' . __('Quick Setup', 'ai-newsletter-pro') . '</h2>';
+        echo '<p>' . __('To unlock all features, add these files to your plugin directory:', 'ai-newsletter-pro') . '</p>';
+        
+        $required_files = array(
+            'includes/class-database.php' => __('Database management', 'ai-newsletter-pro'),
+            'includes/class-widget-manager.php' => __('Widget system', 'ai-newsletter-pro'),
+            'includes/class-subscriber-manager.php' => __('Subscriber handling', 'ai-newsletter-pro'),
+            'admin/class-admin.php' => __('Advanced admin features', 'ai-newsletter-pro'),
+            'public/css/newsletter-widgets.css' => __('Widget styling', 'ai-newsletter-pro'),
+            'public/js/newsletter-widgets.js' => __('Widget functionality', 'ai-newsletter-pro')
+        );
+        
+        echo '<ul>';
+        foreach ($required_files as $file => $description) {
+            $exists = file_exists(AI_NEWSLETTER_PRO_PLUGIN_DIR . $file);
+            $status = $exists ? '✅' : '❌';
+            echo '<li>' . $status . ' <code>' . $file . '</code> - ' . $description . '</li>';
+        }
+        echo '</ul>';
+        
+        echo '</div>';
+    }
+    
+    /**
+     * Subscribers page
+     */
+    public function subscribers_page() {
+        echo '<div class="wrap">';
+        echo '<h1>' . __('Subscribers', 'ai-newsletter-pro') . '</h1>';
+        echo '<p>' . __('Subscriber management will be available once you add the subscriber manager files.', 'ai-newsletter-pro') . '</p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Settings page
+     */
+    public function settings_page() {
+        echo '<div class="wrap">';
+        echo '<h1>' . __('Settings', 'ai-newsletter-pro') . '</h1>';
+        echo '<p>' . __('Plugin settings will be available once you add the admin files.', 'ai-newsletter-pro') . '</p>';
+        echo '</div>';
     }
     
     /**
      * Enqueue frontend scripts and styles
      */
     public function enqueue_frontend_scripts() {
-        wp_enqueue_style(
-            'ai-newsletter-pro-frontend',
-            AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/css/newsletter-frontend.css',
-            array(),
-            AI_NEWSLETTER_PRO_VERSION
-        );
+        // Only load if files exist
+        $css_file = AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/css/newsletter-widgets.css';
+        $js_file = AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/js/newsletter-widgets.js';
         
-        wp_enqueue_style(
-            'ai-newsletter-pro-widgets',
-            AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/css/newsletter-widgets.css',
-            array(),
-            AI_NEWSLETTER_PRO_VERSION
-        );
+        if (file_exists(AI_NEWSLETTER_PRO_PLUGIN_DIR . 'public/css/newsletter-widgets.css')) {
+            wp_enqueue_style(
+                'ai-newsletter-pro-widgets',
+                $css_file,
+                array(),
+                AI_NEWSLETTER_PRO_VERSION
+            );
+        }
         
-        wp_enqueue_script(
-            'ai-newsletter-pro-widgets',
-            AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/js/newsletter-widgets.js',
-            array('jquery'),
-            AI_NEWSLETTER_PRO_VERSION,
-            true
-        );
-        
-        wp_enqueue_script(
-            'ai-newsletter-pro-frontend',
-            AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/js/newsletter-frontend.js',
-            array('jquery'),
-            AI_NEWSLETTER_PRO_VERSION,
-            true
-        );
-        
-        // Localize script for AJAX
-        wp_localize_script('ai-newsletter-pro-frontend', 'ai_newsletter_pro_ajax', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ai_newsletter_pro_nonce'),
-            'messages' => array(
-                'success' => __('Thank you for subscribing!', 'ai-newsletter-pro'),
-                'error' => __('Something went wrong. Please try again.', 'ai-newsletter-pro'),
-                'invalid_email' => __('Please enter a valid email address.', 'ai-newsletter-pro'),
-                'already_subscribed' => __('You are already subscribed!', 'ai-newsletter-pro')
-            )
-        ));
+        if (file_exists(AI_NEWSLETTER_PRO_PLUGIN_DIR . 'public/js/newsletter-widgets.js')) {
+            wp_enqueue_script(
+                'ai-newsletter-pro-widgets',
+                $js_file,
+                array('jquery'),
+                AI_NEWSLETTER_PRO_VERSION,
+                true
+            );
+            
+            // Localize script for AJAX
+            wp_localize_script('ai-newsletter-pro-widgets', 'ai_newsletter_pro_ajax', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('ai_newsletter_pro_nonce'),
+                'messages' => array(
+                    'success' => __('Thank you for subscribing!', 'ai-newsletter-pro'),
+                    'error' => __('Something went wrong. Please try again.', 'ai-newsletter-pro'),
+                    'invalid_email' => __('Please enter a valid email address.', 'ai-newsletter-pro'),
+                    'already_subscribed' => __('You are already subscribed!', 'ai-newsletter-pro')
+                )
+            ));
+        }
     }
     
     /**
@@ -227,26 +302,12 @@ class AI_Newsletter_Pro {
             return;
         }
         
-        wp_enqueue_style(
-            'ai-newsletter-pro-admin',
-            AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/css/newsletter-admin.css',
-            array(),
-            AI_NEWSLETTER_PRO_VERSION
-        );
-        
-        wp_enqueue_script(
-            'ai-newsletter-pro-admin',
-            AI_NEWSLETTER_PRO_PLUGIN_URL . 'public/js/newsletter-admin.js',
-            array('jquery'),
-            AI_NEWSLETTER_PRO_VERSION,
-            true
-        );
-        
-        // Localize admin script
-        wp_localize_script('ai-newsletter-pro-admin', 'ai_newsletter_pro_admin', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ai_newsletter_pro_admin_nonce')
-        ));
+        // Basic admin styling
+        wp_add_inline_style('wp-admin', '
+            .ai-newsletter-pro .notice { margin: 20px 0; }
+            .ai-newsletter-pro ul { margin: 20px 0; }
+            .ai-newsletter-pro li { margin: 10px 0; font-family: monospace; }
+        ');
     }
     
     /**
@@ -265,72 +326,68 @@ class AI_Newsletter_Pro {
             wp_send_json_error(array('message' => __('Invalid email address', 'ai-newsletter-pro')));
         }
         
-        $subscriber_manager = new AI_Newsletter_Pro_Subscriber_Manager();
-        $result = $subscriber_manager->add_subscriber($email, '', $source);
-        
-        if ($result['success']) {
+        // Use subscriber manager if available, otherwise basic handling
+        if (class_exists('AI_Newsletter_Pro_Subscriber_Manager')) {
+            $subscriber_manager = new AI_Newsletter_Pro_Subscriber_Manager();
+            $result = $subscriber_manager->add_subscriber($email, '', $source);
+            
+            if ($result['success']) {
+                wp_send_json_success(array('message' => __('Successfully subscribed!', 'ai-newsletter-pro')));
+            } else {
+                wp_send_json_error(array('message' => $result['message']));
+            }
+        } else {
+            // Basic email storage until full system is set up
+            $this->basic_subscriber_handling($email, $source);
             wp_send_json_success(array('message' => __('Successfully subscribed!', 'ai-newsletter-pro')));
-        } else {
-            wp_send_json_error(array('message' => $result['message']));
         }
     }
     
     /**
-     * Register REST API routes
+     * Basic subscriber handling when full system isn't available
      */
-    public function register_rest_routes() {
-        register_rest_route('ai-newsletter-pro/v1', '/subscribe', array(
-            'methods' => 'POST',
-            'callback' => array($this, 'rest_subscribe'),
-            'permission_callback' => '__return_true'
-        ));
+    private function basic_subscriber_handling($email, $source) {
+        global $wpdb;
         
-        register_rest_route('ai-newsletter-pro/v1', '/unsubscribe', array(
-            'methods' => 'POST',
-            'callback' => array($this, 'rest_unsubscribe'),
-            'permission_callback' => '__return_true'
-        ));
-    }
-    
-    /**
-     * REST API subscribe endpoint
-     */
-    public function rest_subscribe($request) {
-        $email = sanitize_email($request->get_param('email'));
-        $source = sanitize_text_field($request->get_param('source') ?? 'api');
+        // Check if basic table exists
+        $table_name = AI_NEWSLETTER_PRO_SUBSCRIBERS_TABLE;
         
-        if (!is_email($email)) {
-            return new WP_Error('invalid_email', 'Invalid email address', array('status' => 400));
-        }
-        
-        $subscriber_manager = new AI_Newsletter_Pro_Subscriber_Manager();
-        $result = $subscriber_manager->add_subscriber($email, '', $source);
-        
-        if ($result['success']) {
-            return rest_ensure_response(array('message' => 'Successfully subscribed'));
-        } else {
-            return new WP_Error('subscription_failed', $result['message'], array('status' => 400));
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+            // Insert subscriber
+            $wpdb->insert(
+                $table_name,
+                array(
+                    'email' => $email,
+                    'source' => $source,
+                    'status' => 'subscribed',
+                    'subscribed_at' => current_time('mysql')
+                )
+            );
         }
     }
     
     /**
-     * REST API unsubscribe endpoint
+     * Create basic database tables
      */
-    public function rest_unsubscribe($request) {
-        $email = sanitize_email($request->get_param('email'));
+    private function create_basic_tables() {
+        global $wpdb;
         
-        if (!is_email($email)) {
-            return new WP_Error('invalid_email', 'Invalid email address', array('status' => 400));
-        }
+        $charset_collate = $wpdb->get_charset_collate();
         
-        $subscriber_manager = new AI_Newsletter_Pro_Subscriber_Manager();
-        $result = $subscriber_manager->unsubscribe($email);
+        // Basic subscribers table
+        $subscribers_table = "CREATE TABLE " . AI_NEWSLETTER_PRO_SUBSCRIBERS_TABLE . " (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            email varchar(255) NOT NULL,
+            name varchar(255) DEFAULT '',
+            status enum('subscribed','unsubscribed','pending','bounced') DEFAULT 'subscribed',
+            source varchar(100) DEFAULT 'unknown',
+            subscribed_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY email (email)
+        ) $charset_collate;";
         
-        if ($result['success']) {
-            return rest_ensure_response(array('message' => 'Successfully unsubscribed'));
-        } else {
-            return new WP_Error('unsubscribe_failed', $result['message'], array('status' => 400));
-        }
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($subscribers_table);
     }
     
     /**
@@ -339,75 +396,15 @@ class AI_Newsletter_Pro {
     private function create_default_settings() {
         $default_settings = array(
             'general' => array(
-                'double_optin' => true,
+                'double_optin' => false,
                 'gdpr_compliance' => true,
-                'auto_ai_curation' => false,
                 'from_name' => get_bloginfo('name'),
-                'from_email' => get_option('admin_email'),
-                'reply_to' => get_option('admin_email')
-            ),
-            'widgets' => array(
-                'popup_enabled' => true,
-                'popup_delay' => 5000,
-                'popup_scroll_trigger' => 50,
-                'floating_enabled' => false,
-                'banner_enabled' => false
-            ),
-            'integrations' => array(
-                'mailchimp' => array('enabled' => false, 'api_key' => '', 'list_id' => ''),
-                'convertkit' => array('enabled' => false, 'api_key' => '', 'form_id' => ''),
-                'zoho' => array('enabled' => false, 'client_id' => '', 'client_secret' => ''),
-                'sendgrid' => array('enabled' => false, 'api_key' => ''),
-                'activecampaign' => array('enabled' => false, 'api_url' => '', 'api_key' => '')
-            ),
-            'ai' => array(
-                'openai_api_key' => '',
-                'content_selection_criteria' => 'engagement',
-                'newsletter_frequency' => 'weekly',
-                'max_articles' => 5
+                'from_email' => get_option('admin_email')
             )
         );
         
-        update_option('ai_newsletter_pro_settings', $default_settings);
-    }
-    
-    /**
-     * Create default widgets
-     */
-    private function create_default_widgets() {
-        global $wpdb;
-        
-        $default_widgets = array(
-            array(
-                'type' => 'popup',
-                'settings' => json_encode(array(
-                    'title' => 'Join 10,000+ Readers',
-                    'subtitle' => 'Get weekly insights, exclusive content, and industry updates delivered to your inbox.',
-                    'button_text' => 'Subscribe Now',
-                    'style' => 'modern',
-                    'trigger' => 'time',
-                    'trigger_value' => 5000
-                )),
-                'position' => 'center',
-                'active' => 1,
-                'created_at' => current_time('mysql')
-            ),
-            array(
-                'type' => 'inline',
-                'settings' => json_encode(array(
-                    'title' => 'Love This Content?',
-                    'subtitle' => 'Subscribe for weekly insights, behind-the-scenes content, and exclusive tutorials.',
-                    'button_text' => 'Join Community',
-                    'style' => 'gradient'
-                )),
-                'position' => 'after_content',
-                'active' => 0,
-                'created_at' => current_time('mysql')
-            )
-        );
-        
-        foreach ($default_widgets as $widget) {
-            $wpdb->insert(AI_NEWSLETTER_PRO_WIDGETS_TABLE, $widget);
+        if (!get_option('ai_newsletter_pro_settings')) {
+            update_option('ai_newsletter_pro_settings', $default_settings);
         }
     }
 }
@@ -431,11 +428,3 @@ function ai_newsletter_pro_update_option($key, $value) {
     $settings[$key] = $value;
     return update_option('ai_newsletter_pro_settings', $settings);
 }
-
-// Scheduled AI curation hook
-add_action('ai_newsletter_pro_auto_curate', function() {
-    if (ai_newsletter_pro_get_option('ai')['auto_ai_curation'] ?? false) {
-        $ai_curator = new AI_Newsletter_Pro_AI_Curator();
-        $ai_curator->auto_generate_newsletter();
-    }
-});
