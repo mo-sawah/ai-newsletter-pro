@@ -1,0 +1,383 @@
+/* AI Newsletter Pro - Admin Styles */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* Base Admin Styles */
+.ai-newsletter-admin {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #f8fafc;
+  margin: -20px -20px -10px -2px;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.ai-newsletter-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.ai-newsletter-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.ai-newsletter-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.ai-newsletter-header-actions {
+  margin-top: 1.5rem;
+}
+
+.ai-newsletter-header-actions .button {
+  margin-right: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.ai-newsletter-header-actions .button-primary {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.ai-newsletter-header-actions .button-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Stats Grid */
+.ai-newsletter-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 0 2rem;
+}
+
+.ai-newsletter-stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-newsletter-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.ai-newsletter-stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.ai-newsletter-stat-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.ai-newsletter-stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ai-newsletter-stat-label {
+  color: #6b7280;
+  margin: 0.5rem 0;
+  font-weight: 500;
+}
+
+.ai-newsletter-stat-change {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ai-newsletter-stat-change.positive {
+  color: #059669;
+}
+
+/* Dashboard Grid */
+.ai-newsletter-dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+}
+
+.ai-newsletter-dashboard-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.ai-newsletter-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+}
+
+.ai-newsletter-card-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ai-newsletter-view-all {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.ai-newsletter-view-all:hover {
+  color: #4f46e5;
+}
+
+.ai-newsletter-card-body {
+  padding: 1.5rem;
+}
+
+/* Quick Actions */
+.ai-newsletter-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.ai-newsletter-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: #374151;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.ai-newsletter-action-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+  transform: translateY(-1px);
+  border-color: #d1d5db;
+}
+
+.ai-newsletter-action-icon {
+  font-size: 1.5rem;
+}
+
+.ai-newsletter-action-text {
+  font-weight: 500;
+}
+
+/* Activity List */
+.ai-newsletter-activity-list {
+  space-y: 1rem;
+}
+
+.ai-newsletter-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.ai-newsletter-activity-item:last-child {
+  border-bottom: none;
+}
+
+.ai-newsletter-activity-icon {
+  font-size: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+.ai-newsletter-activity-content {
+  flex: 1;
+}
+
+.ai-newsletter-activity-message {
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+  color: #374151;
+}
+
+.ai-newsletter-activity-time {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.ai-newsletter-no-activity {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* AI Section */
+.ai-newsletter-ai-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  grid-column: 1 / -1;
+}
+
+.ai-newsletter-ai-card .ai-newsletter-card-header {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.ai-newsletter-beta-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ai-newsletter-ai-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ai-newsletter-ai-icon {
+  font-size: 3rem;
+}
+
+.ai-newsletter-ai-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.ai-newsletter-ai-content p {
+  margin: 0 0 1rem 0;
+  opacity: 0.9;
+}
+
+.ai-newsletter-ai-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.ai-newsletter-ai-actions .button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+/* Integration Status */
+.ai-newsletter-integrations-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.ai-newsletter-integration-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.ai-newsletter-integration-item.connected {
+  background: #ecfdf5;
+  border-color: #10b981;
+}
+
+.ai-newsletter-integration-icon {
+  font-size: 1.25rem;
+}
+
+.ai-newsletter-integration-name {
+  flex: 1;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.ai-newsletter-integration-status {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.ai-newsletter-integration-item.connected .ai-newsletter-integration-status {
+  color: #059669;
+  font-weight: 600;
+}
+
+.ai-newsletter-no-integrations {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.ai-newsletter-full-width {
+  grid-column: 1 / -1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ai-newsletter-admin {
+    margin: -10px;
+  }
+
+  .ai-newsletter-header {
+    padding: 1.5rem;
+  }
+
+  .ai-newsletter-header h1 {
+    font-size: 2rem;
+  }
+
+  .ai-newsletter-stats-grid,
+  .ai-newsletter-dashboard-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+
+  .ai-newsletter-quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
